@@ -35,6 +35,9 @@ int wrap_swresample_convert(SwrContext *avr, int *out, int outcount, int *in,  i
 	return swr_convert(avr, (void *)out, outcount, (void *)in, incount);
 }
 
+void ffinit() {
+	av_register_all();
+}
 */
 import "C"
 
@@ -44,6 +47,12 @@ import (
 	"time"
 	"unsafe"
 )
+
+
+func init() {
+	C.ffinit()
+}
+
 
 type ffctx struct {
 	ff C.FFCtx
@@ -150,6 +159,15 @@ func (self AudioFrame) Concat(in AudioFrame) (out AudioFrame) {
 		out.Data[i] = append(out.Data[i], in.Data[i]...)
 	}
 	return
+}
+
+
+func HasEncoder(name string) bool {
+	return C.avcodec_find_encoder_by_name(C.CString(name)) != nil
+}
+
+func HasDecoder(name string) bool {
+	return C.avcodec_find_decoder_by_name(C.CString(name)) != nil
 }
 
 type Resampler struct {
