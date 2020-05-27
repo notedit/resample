@@ -48,11 +48,9 @@ import (
 	"unsafe"
 )
 
-
 func init() {
 	C.ffinit()
 }
-
 
 type ffctx struct {
 	ff C.FFCtx
@@ -161,7 +159,6 @@ func (self AudioFrame) Concat(in AudioFrame) (out AudioFrame) {
 	return
 }
 
-
 func HasEncoder(name string) bool {
 	return C.avcodec_find_encoder_by_name(C.CString(name)) != nil
 }
@@ -201,21 +198,18 @@ func (self *Resampler) Resample(in AudioFrame) (out AudioFrame, err error) {
 		self.avr = avr
 	}
 
-	var inChannels, inLinesize int
+	var inChannels int
 	inSampleCount := in.SampleCount
 	if !self.inSampleFormat.IsPlanar() {
 		inChannels = 1
-		inLinesize = inSampleCount * in.SampleFormat.BytesPerSample() * self.inChannels
 	} else {
 		inChannels = self.inChannels
-		inLinesize = inSampleCount * in.SampleFormat.BytesPerSample()
 	}
+
 	inData := make([]*C.uint8_t, inChannels)
 	for i := 0; i < inChannels; i++ {
 		inData[i] = (*C.uint8_t)(unsafe.Pointer(&in.Data[i][0]))
 	}
-
-	fmt.Println(inLinesize)
 
 	var outChannels, outLinesize, outBytesPerSample int
 	outSampleCount := int(C.swr_get_out_samples(self.avr, C.int(in.SampleCount)))
