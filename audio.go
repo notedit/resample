@@ -547,9 +547,30 @@ func audioFrameAssignToAVParams(f *C.AVFrame, frame *AudioFrame) {
 }
 
 func audioFrameAssignToAVData(f *C.AVFrame, frame *AudioFrame) {
+
 	frame.SampleCount = int(f.nb_samples)
-	frame.Data = make([][]byte, int(f.channels))
-	for i := 0; i < int(f.channels); i++ {
+
+	fmt.Println("SampleCount", frame.SampleCount)
+
+	var outChannels, outLinesize, outBytesPerSample int
+	if !frame.SampleFormat.IsPlanar() {
+		outChannels = 1
+		outBytesPerSample = frame.SampleFormat.BytesPerSample() * frame.Channels
+		outLinesize = frame.SampleCount * outBytesPerSample
+	} else {
+		outChannels = frame.Channels
+		outBytesPerSample = frame.SampleFormat.BytesPerSample()
+		outLinesize = frame.SampleCount * outBytesPerSample
+	}
+
+	frame.Data = make([][]byte, outChannels)
+
+	if outLinesize != int(f.linesize[0]) {
+		fmt.Println("linesize does not match", outLinesize, int(f.linesize[0]))
+	}
+
+	for i := 0; i < outChannels; i++ {
+		frame.Data[i] = make([]byte, outLinesize)
 		frame.Data[i] = C.GoBytes(unsafe.Pointer(f.data[i]), f.linesize[0])
 	}
 }
