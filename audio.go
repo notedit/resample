@@ -141,9 +141,16 @@ func (self AudioFrame) Slice(start int, end int) (out AudioFrame) {
 	out = self
 	out.Data = append([][]byte(nil), out.Data...)
 	out.SampleCount = end - start
-	size := self.SampleFormat.BytesPerSample() * self.Channels
+
+	var outBytesPerSample int
+	if !self.SampleFormat.IsPlanar() {
+		outBytesPerSample = self.SampleFormat.BytesPerSample() * self.Channels
+	} else {
+		outBytesPerSample = self.SampleFormat.BytesPerSample()
+	}
+
 	for i := range out.Data {
-		out.Data[i] = out.Data[i][start*size : end*size]
+		out.Data[i] = out.Data[i][start*outBytesPerSample : end*outBytesPerSample]
 	}
 	return
 }
@@ -565,13 +572,9 @@ func audioFrameAssignToAVData(f *C.AVFrame, frame *AudioFrame) {
 
 	frame.Data = make([][]byte, outChannels)
 
-	if outLinesize != int(f.linesize[0]) {
-		fmt.Println("linesize does not match", outLinesize, int(f.linesize[0]))
-	}
-
 	for i := 0; i < outChannels; i++ {
 		frame.Data[i] = make([]byte, outLinesize)
-		frame.Data[i] = C.GoBytes(unsafe.Pointer(f.data[i]), f.linesize[0])
+		frame.Data[i] = C.GoBytes(unsafe.Pointer(f.data[i]), C.int(outLinesize))
 	}
 }
 
