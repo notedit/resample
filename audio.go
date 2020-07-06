@@ -557,8 +557,6 @@ func audioFrameAssignToAVData(f *C.AVFrame, frame *AudioFrame) {
 
 	frame.SampleCount = int(f.nb_samples)
 
-	fmt.Println("SampleCount", frame.SampleCount)
-
 	var outChannels, outLinesize, outBytesPerSample int
 	if !frame.SampleFormat.IsPlanar() {
 		outChannels = 1
