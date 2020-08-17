@@ -1,2 +1,3 @@
 # resample
-audio resample 
+About
+audio encoder/decoder/resampler
